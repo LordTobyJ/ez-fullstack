@@ -12,7 +12,9 @@ const generalGenerator = new GeneralDataGenerator();
 // Initialise Files
 fs.appendFileSync("db/init-db.sh", generalGenerator.db.create);
 fs.appendFileSync(`frontend/src/APIHandler.js`, generalGenerator.frontend.apihandler);
-  
+
+let foreignkeys = "";
+
 fs.readdir(modelsFolder, (err, files) => {
   for(let f = 0; f < files.length; f++) {
     const file = files[f]
@@ -23,6 +25,9 @@ fs.readdir(modelsFolder, (err, files) => {
 
     // Compile the init-db.sh
     fs.appendFileSync("db/init-db.sh", fileGenerator.db.generateTable);
+
+    if (fileGenerator.db.foreignKeys)
+      foreignkeys += fileGenerator.db.foreignKeys;
 
     // Add the Entries for the Backend API
     fs.appendFileSync(`api/autooperations/GET/${fileGenerator.tableName}.js`, fileGenerator.backend.get);
@@ -39,7 +44,14 @@ fs.readdir(modelsFolder, (err, files) => {
     fs.appendFileSync(`frontend/src/APIHandler.js`, fileGenerator.frontend.delete);
 
   }
+
+  // Add all the foreign key constraints (after all tables are created)
+  fs.appendFileSync("db/init-db.sh", foreignkeys);
+
+
 });
+
+
 
 console.log("Finished Compiling Models");
 
